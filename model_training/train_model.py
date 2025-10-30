@@ -9,7 +9,7 @@ import mlflow
 import mlflow.sklearn
 import os
 
-file_path = '/kaggle/input/energy-consumption-prediction/Energy_consumption.csv'
+file_path = "C:/Data/Nirma/Sem-7/MLOps/Assignment/model_training/dataset.csv"
 energy_data = pd.read_csv(file_path)
 
 
