@@ -73,7 +73,6 @@ venv.bak/
 Thumbs.db
 
 # Model artifacts
-*.pkl
 *.h5
 *.onnx
 *.ckpt
