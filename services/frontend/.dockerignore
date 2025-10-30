@@ -1,0 +1,18 @@
+# Nginx image will only need static assets
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+
+# Node or other caches (not used, but safe)
+node_modules/
+
+# VCS
+.git/
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

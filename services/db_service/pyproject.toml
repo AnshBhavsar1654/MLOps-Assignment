@@ -1,0 +1,13 @@
+[project]
+name = "db-service"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13.5"
+dependencies = [
+    "datetime>=5.5",
+    "flask>=3.1.2",
+    "flask-cors>=6.0.1",
+    "flask-sqlalchemy>=3.1.1",
+    "waitress>=3.0.2",
+]

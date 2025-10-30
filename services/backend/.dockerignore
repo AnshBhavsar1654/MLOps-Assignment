@@ -1,0 +1,33 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual envs
+.venv/
+venv/
+ENV/
+
+# Byte-compiled / optimized / DLL files
+*.pyd
+*.pyo
+
+# Build artifacts
+build/
+dist/
+.eggs/
+*.egg-info/
+
+# VCS
+.git/
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Model files copied via volume at runtime
+energy_consumption_model.pkl
+feature_names.pkl

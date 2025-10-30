@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Consumption Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 20px;
+            color: #2d3748;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 32px 40px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header h1::before {
+            content: '⚡';
+            font-size: 2rem;
+        }
+
+        .header p {
+            font-size: 0.95rem;
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        .card h2 {
+            color: #1a202c;
+            margin-bottom: 24px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: white;
+            color: #2d3748;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        input:hover, select:hover {
+            border-color: #94a3b8;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #2563eb;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 28px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 24px;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 12px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .result-label {
+            font-size: 0.95rem;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+        }
+
+        .history-table th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .history-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .history-table td:first-child {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .history-table td:nth-child(3) {
+            font-weight: 600;
+            color: #3b82f6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: #cbd5e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 8px 0;
+            color: #1a202c;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            padding: 14px 16px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .success-message {
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+            padding: 14px 16px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        .refresh-btn {
+            background: #10b981;
+            padding: 10px 20px;
+            margin-left: 12px;
+            display: inline-block;
+            width: auto;
+            font-size: 0.875rem;
+        }
+
+        .refresh-btn:hover {
+            background: #059669;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-on {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-off {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-lighting {
+            background: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Energy Consumption Predictor</h1>
+            <p>ML-powered forecasting for intelligent energy management and optimization</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Prediction Form -->
+            <div class="card">
+                <h2>🔮 Make Prediction</h2>
+                <form id="predictionForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="temperature">Temperature (°C)</label>
+                            <input type="number" id="temperature" name="Temperature" step="0.1" required value="25">
+                        </div>
+                        <div class="form-group">
+                            <label for="humidity">Humidity (%)</label>
+                            <input type="number" id="humidity" name="Humidity" step="0.1" required value="60">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="squareFootage">Square Footage</label>
+                            <input type="number" id="squareFootage" name="SquareFootage" required value="2000">
+                        </div>
+                        <div class="form-group">
+                            <label for="occupancy">Occupancy</label>
+                            <input type="number" id="occupancy" name="Occupancy" required value="4">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="hvacUsage">HVAC Usage</label>
+                            <select id="hvacUsage" name="HVACUsage" required>
+                                <option value="Off">Off</option>
+                                <option value="On" selected>On</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="lightingUsage">Lighting Usage</label>
+                            <select id="lightingUsage" name="LightingUsage" required>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High" selected>High</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="renewableEnergy">Renewable Energy (kWh)</label>
+                            <input type="number" id="renewableEnergy" name="RenewableEnergy" step="0.1" required value="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="hour">Hour (0-23)</label>
+                            <input type="number" id="hour" name="Hour" min="0" max="23" required value="14">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="month">Month (1-12)</label>
+                            <input type="number" id="month" name="Month" min="1" max="12" required value="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="holiday">Holiday</label>
+                            <select id="holiday" name="Holiday" required>
+                                <option value="No" selected>No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn" id="predictBtn">Predict Energy Consumption</button>
+                </form>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processing prediction...</p>
+                </div>
+
+                <div class="result-box" id="resultBox">
+                    <div class="result-label">Predicted Energy Consumption</div>
+                    <div class="result-value" id="predictionValue">0</div>
+                    <div class="result-label">kWh</div>
+                </div>
+
+                <div class="error-message" id="errorMessage"></div>
+                <div class="success-message" id="successMessage"></div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="card">
+                <h2>📊 Statistics</h2>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Predictions</div>
+                        <div class="stat-value" id="totalPredictions">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Average</div>
+                        <div class="stat-value" id="avgPrediction">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Minimum</div>
+                        <div class="stat-value" id="minPrediction">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Maximum</div>
+                        <div class="stat-value" id="maxPrediction">0</div>
+                    </div>
+                </div>
+                <button class="btn refresh-btn" onclick="loadStatistics()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <!-- Prediction History -->
+        <div class="card full-width">
+            <h2>📜 Prediction History</h2>
+            <button class="btn refresh-btn" onclick="loadPredictionHistory()">🔄 Refresh</button>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Timestamp</th>
+                        <th>Predicted (kWh)</th>
+                        <th>Temperature</th>
+                        <th>Humidity</th>
+                        <th>HVAC</th>
+                        <th>Lighting</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #94a3b8;">No predictions yet</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // API Endpoints
+        const BACKEND_URL = 'http://localhost:5001';
+        const DB_SERVICE_URL = 'http://localhost:5002';
+
+        // Form submission
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {};
+            
+            // Convert form data to object with proper types
+            formData.forEach((value, key) => {
+                if (['Temperature', 'Humidity', 'SquareFootage', 'Occupancy', 'RenewableEnergy'].includes(key)) {
+                    data[key] = parseFloat(value);
+                } else if (['Hour', 'Month'].includes(key)) {
+                    data[key] = parseInt(value);
+                } else {
+                    data[key] = value;
+                }
+            });
+
+            // Show loading, hide messages
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('resultBox').classList.remove('show');
+            document.getElementById('errorMessage').classList.remove('show');
+            document.getElementById('successMessage').classList.remove('show');
+            document.getElementById('predictBtn').disabled = true;
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Show prediction result
+                    document.getElementById('predictionValue').textContent = result.prediction;
+                    document.getElementById('resultBox').classList.add('show');
+                    
+                    // Show success message
+                    document.getElementById('successMessage').textContent = 'Prediction successful! Data saved to history.';
+                    document.getElementById('successMessage').classList.add('show');
+
+                    // Refresh statistics and history
+                    setTimeout(() => {
+                        loadStatistics();
+                        loadPredictionHistory();
+                    }, 500);
+                } else {
+                    throw new Error(result.error || 'Prediction failed');
+                }
+            } catch (error) {
+                document.getElementById('errorMessage').textContent = `Error: ${error.message}`;
+                document.getElementById('errorMessage').classList.add('show');
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('predictBtn').disabled = false;
+            }
+        });
+
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                const response = await fetch(`${DB_SERVICE_URL}/predictions/stats`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('totalPredictions').textContent = data.total_predictions;
+                    document.getElementById('avgPrediction').textContent = data.average_prediction;
+                    document.getElementById('minPrediction').textContent = data.min_prediction;
+                    document.getElementById('maxPrediction').textContent = data.max_prediction;
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        // Load prediction history
+        async function loadPredictionHistory() {
+            try {
+                const response = await fetch(`${DB_SERVICE_URL}/predictions?limit=10`);
+                const data = await response.json();
+
+                const tbody = document.getElementById('historyTableBody');
+                tbody.innerHTML = '';
+
+                if (response.ok && data.predictions.length > 0) {
+                    data.predictions.forEach(pred => {
+                        const row = document.createElement('tr');
+                        const timestamp = new Date(pred.timestamp).toLocaleString();
+                        
+                        row.innerHTML = `
+                            <td>${pred.id}</td>
+                            <td>${timestamp}</td>
+                            <td><strong>${pred.predicted_value}</strong></td>
+                            <td>${pred.input_features.Temperature}°C</td>
+                            <td>${pred.input_features.Humidity}%</td>
+                            <td>${pred.input_features.HVACUsage}</td>
+                            <td>${pred.input_features.LightingUsage}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #94a3b8;">No predictions yet</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading prediction history:', error);
+            }
+        }
+
+        // Load data on page load
+        window.addEventListener('load', () => {
+            loadStatistics();
+            loadPredictionHistory();
+        });
+    </script>
+</body>
+</html>
