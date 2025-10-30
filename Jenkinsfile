@@ -23,5 +23,10 @@ pipeline {
                 bat 'docker-compose up -d'
             }
         }
+        stage('Train Model') {
+            steps {
+                bat 'docker-compose exec backend python model_training/train_model.py'
+            }
+        }
     }
 }

@@ -6,6 +6,7 @@ import numpy as np
 import os
 import requests
 from waitress import serve
+import mlflow
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +21,12 @@ FEATURE_NAMES_PATH = os.environ.get("FEATURE_NAMES_PATH", DEFAULT_FEATURE_NAMES_
 
 # Database service URL (overridable for Docker networking)
 DB_SERVICE_URL = os.environ.get("DB_SERVICE_URL", "http://localhost:5002/predictions")
+
+# Set MLflow tracking URI for Docker/Jenkins
+mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI")
+if mlflow_uri:
+    mlflow.set_tracking_uri(mlflow_uri)
+mlflow.set_experiment("Energy_Consumption_Inference_API")
 
 # Load model at startup
 try:
@@ -99,6 +106,14 @@ def predict():
         # Make prediction
         prediction = model.predict(input_df)[0]
         prediction = float(prediction)
+        
+        # MLflow Logging (optional for monitoring)
+        try:
+            mlflow.log_param("endpoint", "predict")
+            mlflow.log_dict(data, "input_features.json")
+            mlflow.log_metric("prediction", prediction)
+        except Exception as mlflow_err:
+            print(f"MLflow logging error: {mlflow_err}")
         
         # Prepare response
         response = {
@@ -209,6 +224,12 @@ def batch_predict():
                 'input': sample,
                 'prediction': round(float(prediction), 2)
             })
+            try:
+                mlflow.log_param("endpoint", "batch-predict")
+                mlflow.log_dict(sample, "input_features_batch.json")
+                mlflow.log_metric("prediction", float(prediction))
+            except Exception as mlflow_err:
+                print(f"MLflow logging error: {mlflow_err}")
         
         return jsonify({
             'predictions': predictions,

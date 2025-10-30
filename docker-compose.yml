@@ -21,8 +21,10 @@ services:
       - MODEL_PATH=/models/energy_consumption_model.pkl
       - FEATURE_NAMES_PATH=/models/feature_names.pkl
       - DB_SERVICE_URL=http://db_service:5002/predictions
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
     depends_on:
       - db_service
+      - mlflow
     volumes:
       - ./energy_consumption_model.pkl:/models/energy_consumption_model.pkl:ro
       - ./feature_names.pkl:/models/feature_names.pkl:ro
@@ -34,6 +36,18 @@ services:
       - "8080:80"
     depends_on:
       - backend
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.12.1
+    container_name: mlflow-server
+    ports:
+      - "5003:5000"
+    volumes:
+      - ./mlruns:/mlflow/artifacts
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=sqlite:///mlflow.db
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
+    command: mlflow server --host 0.0.0.0
 
 volumes:
   db_data:

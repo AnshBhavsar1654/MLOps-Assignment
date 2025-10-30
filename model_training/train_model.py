@@ -5,6 +5,9 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.pipeline import Pipeline
+import mlflow
+import mlflow.sklearn
+import os
 
 file_path = '/kaggle/input/energy-consumption-prediction/Energy_consumption.csv'
 energy_data = pd.read_csv(file_path)
@@ -88,24 +91,35 @@ rf_grid = GridSearchCV(
     n_jobs=-1
 )
 
-# Fit the model
-rf_grid.fit(X_train, y_train)
+# Set tracking URI from env if present (especially for Docker/Jenkins environments)
+mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI")
+if mlflow_uri:
+    mlflow.set_tracking_uri(mlflow_uri)
 
-# Get best model
-best_model = rf_grid.best_estimator_
+mlflow.set_experiment("Energy_Consumption_RF")
 
-# Evaluate
-y_pred = best_model.predict(X_test)
-mse = mean_squared_error(y_test, y_pred)
-mae = mean_absolute_error(y_test, y_pred)
-r2 = r2_score(y_test, y_pred)
+with mlflow.start_run():
+    # Run the existing training and evaluation code inside this context
+    # Fit the model
+    rf_grid.fit(X_train, y_train)
 
-print("\n=== Random Forest Results ===")
-print(f"Best Parameters: {rf_grid.best_params_}")
-print(f"MAE: {mae:.2f}")
-print(f"MSE: {mse:.2f}")
-print(f"RMSE: {np.sqrt(mse):.2f}")
-print(f"R² Score: {r2:.4f}")
+    # Get best model
+    best_model = rf_grid.best_estimator_
+
+    # Evaluate
+    y_pred = best_model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+    mae = mean_absolute_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+
+    # Log parameters, score, and artifact to MLflow
+    mlflow.log_params(rf_grid.best_params_)
+    mlflow.log_metric('mae', mae)
+    mlflow.log_metric('mse', mse)
+    mlflow.log_metric('rmse', np.sqrt(mse))
+    mlflow.log_metric('r2_score', r2)
+    mlflow.sklearn.log_model(best_model, "random_forest_model")
+    mlflow.log_artifact('energy_consumption_model.pkl')
 
 # SAVE MODEL AND PREPROCESSING INFO
 print("\nSaving model and preprocessing information...")
