@@ -33,7 +33,7 @@ services:
     build: ./services/frontend
     container_name: energy-frontend
     ports:
-      - "8080:80"
+      - "8081:80"
     depends_on:
       - backend
 
@@ -49,6 +49,37 @@ services:
       - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
     command: mlflow server --host 0.0.0.0
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./services/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - backend
+      - db_service
+      - mlflow
+
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./services/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./services/grafana/dashboards.json:/etc/grafana/provisioning/dashboards/dashboard.json
+    depends_on:
+      - prometheus
+
+
 volumes:
   db_data:
+    driver: local
+  grafana_data:
     driver: local
