@@ -7,9 +7,36 @@ import os
 import requests
 from waitress import serve
 import mlflow
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+import time
 
 app = Flask(__name__)
+# Prometheus metrics
+REQUEST_COUNT = Counter(
+    'backend_requests_total', 'Total number of requests received', ['method', 'endpoint', 'http_status']
+)
+
+REQUEST_LATENCY = Histogram(
+    'backend_request_latency_seconds', 'Request latency in seconds', ['endpoint']
+)
+
+PREDICTION_COUNT = Counter(
+    'backend_predictions_total', 'Total number of predictions made', ['endpoint']
+)
+
 CORS(app)
+
+@app.before_request
+def before_request():
+    request.start_time = time.time()
+
+@app.after_request
+def after_request(response):
+    latency = time.time() - getattr(request, "start_time", time.time())
+    REQUEST_LATENCY.labels(request.path).observe(latency)
+    REQUEST_COUNT.labels(request.method, request.path, response.status_code).inc()
+    return response
+
 
 # Load the trained model
 DEFAULT_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'energy_consumption_model.pkl')
@@ -69,7 +96,10 @@ def model_info():
         'metrics': model_metrics,
         'total_features': len(feature_names)
     })
-
+@app.route('/metrics', methods=['GET'])
+def metrics():
+    from flask import Response
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -133,7 +163,8 @@ def predict():
             requests.post(DB_SERVICE_URL, json=prediction_data, timeout=2)
         except Exception as db_error:
             print(f"Warning: Could not store prediction in database: {str(db_error)}")
-        
+        PREDICTION_COUNT.labels(endpoint='/predict').inc()
+
         return jsonify(response)
     
     except Exception as e:
@@ -230,7 +261,8 @@ def batch_predict():
                 mlflow.log_metric("prediction", float(prediction))
             except Exception as mlflow_err:
                 print(f"MLflow logging error: {mlflow_err}")
-        
+        PREDICTION_COUNT.labels(endpoint='/batch-predict').inc()
+
         return jsonify({
             'predictions': predictions,
             'count': len(predictions),

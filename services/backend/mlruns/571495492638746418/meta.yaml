@@ -1,0 +1,6 @@
+artifact_location: file:///C:/Users/deeks/Desktop/MLOPs/MLOps-Assignment/services/backend/mlruns/571495492638746418
+creation_time: 1761825292258
+experiment_id: '571495492638746418'
+last_update_time: 1761825292258
+lifecycle_stage: active
+name: Energy_Consumption_Inference_API

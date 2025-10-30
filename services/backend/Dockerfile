@@ -13,9 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy requirements and install
 COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir waitress
-
+RUN pip install --no-cache-dir -r requirements.txt
 # Copy service code
 COPY app.py /app/app.py
 

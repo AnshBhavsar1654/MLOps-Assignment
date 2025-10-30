@@ -5,7 +5,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: "https://github.com/AnshBhavsar1654/MLOps-Assignment"
+                git branch: 'main', url: "https://github.com/Deekshita1608/MLOps-Assignment.git"
             }
         }
         stage('Show workspace') {

@@ -1,0 +1,94 @@
+{
+  "id": null,
+  "uid": "mlops-energy-dashboard",
+  "title": "MLOps Energy Monitoring Dashboard",
+  "tags": ["prometheus", "flask", "mlops"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "type": "row",
+      "title": "Backend Service Metrics (port 5001)",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Backend Request Rate (req/sec)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(backend_requests_total[1m])",
+          "legendFormat": "{{method}} {{endpoint}} ({{http_status}})"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 1, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Backend Request Latency (seconds)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(backend_request_latency_seconds_sum[1m]) / rate(backend_request_latency_seconds_count[1m])",
+          "legendFormat": "{{endpoint}}"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 1, "w": 12, "h": 8 }
+    },
+    {
+      "type": "stat",
+      "title": "Total Predictions Made (Backend)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(backend_predictions_total)"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 9, "w": 6, "h": 4 }
+    },
+    {
+      "type": "row",
+      "title": "Database Service Metrics (port 5002)",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 13, "w": 24, "h": 1 }
+    },
+    {
+      "type": "timeseries",
+      "title": "DB Request Rate (req/sec)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(db_requests_total[1m])",
+          "legendFormat": "{{method}} {{endpoint}} ({{http_status}})"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 14, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "DB Request Latency (seconds)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(db_request_latency_seconds_sum[1m]) / rate(db_request_latency_seconds_count[1m])",
+          "legendFormat": "{{endpoint}}"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 14, "w": 12, "h": 8 }
+    },
+    {
+      "type": "stat",
+      "title": "Total Stored Predictions (DB)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "db_predictions_total"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 22, "w": 6, "h": 4 }
+    }
+  ]
+}
