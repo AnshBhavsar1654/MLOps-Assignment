@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'backend'
+    static_configs:
+      - targets: ['backend:5001']
+
+  - job_name: 'db_service'
+    static_configs:
+      - targets: ['db_service:5002']
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
